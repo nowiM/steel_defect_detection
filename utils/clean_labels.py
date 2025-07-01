@@ -38,7 +38,6 @@ def read_xml(in_fp):
 
     dict_group = {}
     obj = root.find('object')
-    cls = obj.find('name').text
 
     # 하나의 파일에 여러개의 라벨링 파일을 dict_group 저장
     for obj in root.iter('object'):
@@ -53,26 +52,78 @@ def read_xml(in_fp):
 
     return w, h, dict_group
 
+def merge(box1, box2):
+    pass
+def area(box):
+    pass
+
+def compute_overlapped_area(boxa, boxb, dilated=False, width=0, height=0):
+    pass
+
 def union_boxes(list_boxes, dilated, width, height):
-    print(list_boxes)
+    # bbox 좌표 리스트를 xmin 기준으로 정렬
+    list_sort_xmin = sorted(list_boxes, key = itemgetter(0)) # itemgetter : 0번째 요소 기준으로 정렬
 
-    list_sort_xmin = sorted(list_boxes, key = itemgetter(0))
-
-    n_box = len(list_boxes)
+    n_box = len(list_boxes) # bbox 좌표 리스트 길이
 
     for i in range(n_box - 1):
         if list_sort_xmin[i] is None:
             continue
 
-        box = list_sort_xmin[i][:]
+        box = list_sort_xmin[i][:] # 참조
+        # print(list_sort_xmin[i]) # 복사
 
         list_index_review = []
 
         for j in range(n_box):
+            if list_sort_xmin[j] is None or j == i:
+                continue
 
+            overlappend_area = compute_overlapped_area(
+                                    box,
+                                    list_sort_xmin[j],
+                                    dilated,
+                                    width,
+                                    height
+                                )
 
+            min_area = min(area(box), area(list_sort_xmin[j]))
+            thresh = 1 if dilated else (OVERLAP_FRACTION)
 
+            if overlappend_area > thresh:
+                box  = merge(box, list_sort_xmin[j])
 
+                list_sort_xmin[j] = None
+
+                for k in list_index_review[::-1]:
+                    if list_sort_xmin[k] is None:
+                        continue
+
+                    overlappend_area = compute_overlapped_area(
+                                    box,
+                                    list_sort_xmin[k],
+                                    dilated,
+                                    width,
+                                    height
+                                )
+
+                    min_area = min(area(box), area(list_sort_xmin[k]))
+                    thresh = 1 if dilated else (OVERLAP_FRACTION)
+
+                    if overlappend_area > thresh:
+                        box = merge(box, list_sort_xmin[k])
+
+                        list_sort_xmin[k] = None
+            else:
+                list_index_review.append(j)
+
+        list_sort_xmin[i] = [box for box in list_sort_xmin if box is not None]
+
+        return list_boxes
+
+def write_xml(output_path, filename,
+              width, height, list_bbox):
+    pass
 def clean(xml_files, annot_folder, output_folder, image_set):
     # tqdm는 반복 작업의 진행 상태를 한눈에 볼 수 있게 하는 progress bar 라이브러리, 에포크 실행 시 나오는 바와 같다.
     for xml_fn in tqdm(xml_files, desc = f'{image_set}'):
