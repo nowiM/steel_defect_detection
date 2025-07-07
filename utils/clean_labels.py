@@ -22,6 +22,7 @@ DICT_FOLDER = {
     'scratches': 'sc'
 }
 
+
 def read_xml(in_fp):
     # XML 파일 열기
     in_file = open(in_fp)
@@ -52,13 +53,19 @@ def read_xml(in_fp):
 
     return w, h, dict_group
 
+
+
 def merge(box1, box2):
     pass
+
+
 def area(box):
     pass
 
+
 def compute_overlapped_area(boxa, boxb, dilated=False, width=0, height=0):
     pass
+
 
 def union_boxes(list_boxes, dilated, width, height):
     # bbox 좌표 리스트를 xmin 기준으로 정렬
@@ -88,7 +95,7 @@ def union_boxes(list_boxes, dilated, width, height):
                                 )
 
             min_area = min(area(box), area(list_sort_xmin[j]))
-            thresh = 1 if dilated else (OVERLAP_FRACTION)
+            thresh = 1 if dilated else (OVERLAP_FRACTION * min_area)
 
             if overlappend_area > thresh:
                 box  = merge(box, list_sort_xmin[j])
@@ -108,7 +115,7 @@ def union_boxes(list_boxes, dilated, width, height):
                                 )
 
                     min_area = min(area(box), area(list_sort_xmin[k]))
-                    thresh = 1 if dilated else (OVERLAP_FRACTION)
+                    thresh = 1 if dilated else (OVERLAP_FRACTION * min_area)
 
                     if overlappend_area > thresh:
                         box = merge(box, list_sort_xmin[k])
@@ -121,9 +128,12 @@ def union_boxes(list_boxes, dilated, width, height):
 
         return list_boxes
 
+
 def write_xml(output_path, filename,
               width, height, list_bbox):
     pass
+
+
 def clean(xml_files, annot_folder, output_folder, image_set):
     # tqdm는 반복 작업의 진행 상태를 한눈에 볼 수 있게 하는 progress bar 라이브러리, 에포크 실행 시 나오는 바와 같다.
     for xml_fn in tqdm(xml_files, desc = f'{image_set}'):
@@ -157,6 +167,7 @@ def clean(xml_files, annot_folder, output_folder, image_set):
             list_bbox
         )
 
+
 def main():
     for image_set in ['train', 'validation']:
         # 여러 개의 디렉토리 경로 조각을 연결해주는 함수, OS 독립적 => ../NEU-DET/'train'/'annotations'
@@ -175,3 +186,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
