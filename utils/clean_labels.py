@@ -5,8 +5,6 @@ from pathlib import Path
 import os
 from operator import itemgetter
 
-from Steel_defect.utils.clean_labels import dilate_rectangle
-
 ROOT_FOLDER_PATH = '../NEU-DET'
 LABELS = [
     'crazing', 'inclusion', 'patches',
@@ -40,7 +38,6 @@ def read_xml(in_fp):
     h = int(size.find('height').text)
 
     dict_group = {}
-    obj = root.find('object')
 
     # 하나의 파일에 여러개의 라벨링 파일을 dict_group 저장
     for obj in root.iter('object'):
@@ -176,7 +173,7 @@ def union_boxes(list_boxes, dilated, width, height):
                 list_index_review.append(j) # 현재 병합하지 않았지만 나중에 다시 검사할 필요가 있으므로 리스트에 저장
 
         # 병합된 박스(None) 제거 후 최종 바운딩 박스 값 저장
-        list_sort_xmin[i] = [box for box in list_sort_xmin if box is not None]
+        list_boxes = [box for box in list_sort_xmin if box is not None]
 
         return list_boxes
 
@@ -206,7 +203,7 @@ def write_xml(output_path, filename,
     folder_name = ''.join(i for i in filename if not i.isdigit())
     folder_name = folder_name.strip('_')
 
-    root = Element('annotaion')
+    root = Element('annotation')
     SubElement(root, 'folder').text = DICT_FOLDER[folder_name]
     SubElement(root, 'filename').text = filename + '.jpg'
     source = SubElement(root, 'source')
@@ -218,7 +215,7 @@ def write_xml(output_path, filename,
     SubElement(size, 'depth').text = '1'
     SubElement(root, 'segmented').text = '0'
 
-    for(class_name, xmin, xmax, ymin, ymax) in list_bbox:
+    for (class_name, xmin, xmax, ymin, ymax) in list_bbox:
         # xmin, ymin, xmax, ymax = entry
 
         obj = SubElement(root, 'object')
